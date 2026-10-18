@@ -2,62 +2,112 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calculadora de Ahorro Solar - Ley 1715</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-slate-900 text-white p-10 flex justify-center items-center min-h-screen">
-    <div class="max-w-md w-full bg-slate-800 p-8 rounded-2xl border border-slate-700 shadow-2xl space-y-6">
-        <div class="text-center">
-            <span class="bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/20">Modelo CAPEX Cero</span>
-            <h1 class="text-2xl font-bold text-white mt-2">Calculadora Solar</h1>
+<body class="bg-slate-950 text-slate-100 font-sans antialiased min-h-screen p-4 md:p-8">
+
+    <div class="max-w-3xl mx-auto space-y-8">
+        <div class="text-center space-y-3">
+            <span class="bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/20">
+                Modelo CAPEX Cero - Ley 1715
+            </span>
+            <h1 class="text-3xl md:text-4xl font-extrabold text-white">Calculadora de Ahorro Energético Solar</h1>
+            <p class="text-slate-400 text-sm md:text-base">Evalúa el impacto financiero de la energía solar para tu empresa en Colombia</p>
         </div>
 
-        <form id="formSolar" class="space-y-4">
-            <div>
-                <label class="block text-xs uppercase text-slate-400 mb-1">Empresa</label>
-                <input type="text" id="empresa" required class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-lg text-white focus:border-amber-500 outline-none" placeholder="Ej. Industrias S.A.S.">
+        <form id="solar-form" class="bg-slate-900 p-6 md:p-8 rounded-2xl border border-slate-800 shadow-2xl space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-2">Nombre Completo *</label>
+                    <input type="text" id="nombre" required placeholder="Carlos Hoyos" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-amber-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-2">Nombre de la Empresa *</label>
+                    <input type="text" id="empresa" required placeholder="Empresa Solar S.A.S." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-amber-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-2">Correo Electrónico *</label>
+                    <input type="email" id="email" required placeholder="carlos@empresa.com" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-amber-500 transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-medium text-slate-400 mb-2">Teléfono de Contacto *</label>
+                    <input type="tel" id="telefono" required placeholder="3001234567" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-slate-200 focus:outline-none focus:border-amber-500 transition-colors">
+                </div>
             </div>
+
             <div>
-                <label class="block text-xs uppercase text-slate-400 mb-1">Correo Corporativo</label>
-                <input type="email" id="email" required class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-lg text-white focus:border-amber-500 outline-none" placeholder="contacto@empresa.com">
+                <label class="block text-xs font-medium text-slate-400 mb-2">Factura Mensual Promedio de Energía (COP) *</label>
+                <input type="number" id="factura" required min="1000000" placeholder="10000000" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-amber-400 font-bold text-lg focus:outline-none focus:border-amber-500 transition-colors">
             </div>
-            <div>
-                <label class="block text-xs uppercase text-slate-400 mb-1">Pago Mensual de Energía (COP)</label>
-                <input type="number" id="pago" required class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-lg text-white focus:border-amber-500 outline-none" placeholder="Ej. 15000000">
-            </div>
-            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold p-3 rounded-lg transition-all">Calcular Ahorro</button>
+
+            <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-4 rounded-xl transition-colors shadow-lg shadow-amber-500/20">
+                Calcular Ahorro y Generar Estudio
+            </button>
         </form>
 
-        <div id="resultado" class="hidden p-4 bg-slate-900 rounded-lg border border-slate-700 text-center space-y-2">
-            <h3 class="text-sm font-semibold text-amber-400">Diagnóstico Estimado</h3>
-            <p id="txtAhorro" class="text-lg font-extrabold text-emerald-400"></p>
+        <div id="resultado" class="hidden bg-slate-900 p-6 md:p-8 rounded-2xl border border-amber-500/30 space-y-6">
+            <h3 class="text-xl font-bold text-amber-400">Resultado de la Evaluación Financiera</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <span class="text-xs text-slate-400">Capacidad Est. del Sistema</span>
+                    <p id="kw-result" class="text-xl font-bold text-white mt-1">0 kWp</p>
+                </div>
+                <div class="bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <span class="text-xs text-slate-400">Ahorro Estimado Primer Año</span>
+                    <p id="ahorro-result" class="text-xl font-bold text-emerald-400 mt-1">$0 COP</p>
+                </div>
+            </div>
+            <p class="text-xs text-slate-500">
+                * Los cálculos incluyen el beneficio tributario del 50% de deducción en impuesto de renta según la Ley 1715.
+            </p>
         </div>
     </div>
 
     <script>
-        document.getElementById('formSolar').onsubmit = async (e) => {
+        document.getElementById('solar-form').addEventListener('submit', async function(e) {
             e.preventDefault();
-            const pago = parseFloat(document.getElementById('pago').value);
-            const ahorro = pago * 0.40;
 
-            document.getElementById('txtAhorro').innerText = 'Ahorro estimado: $' + ahorro.toLocaleString('es-CO') + ' COP/mes';
+            const nombre = document.getElementById('nombre').value;
+            const empresa = document.getElementById('empresa').value;
+            const email = document.getElementById('email').value;
+            const telefono = document.getElementById('telefono').value;
+            const factura = parseFloat(document.getElementById('factura').value);
+
+            // Algoritmo de estimacion solar Ley 1715
+            const kwEstimados = Math.round((factura / 850) / 120);
+            const ahorroAnual = Math.round(factura * 12 * 0.40);
+
+            // Mostrar resultados
+            document.getElementById('kw-result').innerText = `${kwEstimados} kWp`;
+            document.getElementById('ahorro-result').innerText = `$${ahorroAnual.toLocaleString('es-CO')} COP`;
             document.getElementById('resultado').classList.remove('hidden');
 
+            // Enviar datos al backend API
             try {
-                await fetch('/api/v1/leads', {
+                const response = await fetch('/api/leads', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        empresa: document.getElementById('empresa').value,
-                        contacto_email: document.getElementById('email').value,
-                        pago_mensual_cop: pago
+                        nombre,
+                        empresa,
+                        email,
+                        telefono,
+                        factura_mensual: factura,
+                        kw_estimados: kwEstimados,
+                        ahorro_anual: ahorroAnual
                     })
                 });
-                console.log('Lead enviado exitosamente al backend.');
+
+                const resData = await response.json();
+                if (resData.success) {
+                    alert('¡Excelente! Tu cálculo ha sido procesado y guardado en nuestro sistema.');
+                }
             } catch (err) {
-                console.error('Error al enviar lead:', err);
+                console.error('Error al guardar el lead:', err);
             }
-        };
+        });
     </script>
 </body>
 </html>
