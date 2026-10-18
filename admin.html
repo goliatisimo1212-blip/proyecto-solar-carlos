@@ -10,7 +10,7 @@
     <div class="max-w-6xl mx-auto space-y-6">
         <div class="flex justify-between items-center bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl">
             <div>
-                <span class="bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/20">Panel v2.4.0</span>
+                <span class="bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/20">Panel v5.5.0</span>
                 <h1 class="text-2xl font-bold text-white mt-1">Empresas Captadas (Ley 1715)</h1>
             </div>
             <a href="index.html" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-lg text-sm transition-colors border border-slate-700">
@@ -20,26 +20,29 @@
 
         <div class="bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden shadow-2xl">
             <div class="p-4 border-b border-slate-800 flex justify-between items-center">
-                <h2 class="text-sm font-semibold text-slate-300">Base de Datos de Prospectos</h2>
-                <button onclick="cargarLeads()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-3 py-1.5 rounded-lg text-xs transition-all">
-                    Actualizar Lista
+                <h2 class="text-lg font-semibold text-white">Lista de Leads Registrados</h2>
+                <button onclick="cargarLeads()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors">
+                    🔄 Actualizar Tabla
                 </button>
             </div>
-
+            
             <div class="overflow-x-auto">
                 <table class="w-full text-left text-sm text-slate-300">
-                    <thead class="bg-slate-950 text-xs uppercase text-slate-400 border-b border-slate-800">
+                    <thead class="bg-slate-800/50 text-slate-400 uppercase text-xs">
                         <tr>
-                            <th class="p-4">ID</th>
-                            <th class="p-4">Empresa</th>
-                            <th class="p-4">Correo</th>
-                            <th class="p-4">Factura Mensual</th>
-                            <th class="p-4">Calificación CAPEX</th>
-                            <th class="p-4">Acción Comercial</th>
+                            <th class="px-6 py-4">ID</th>
+                            <th class="px-6 py-4">Cliente / Empresa</th>
+                            <th class="px-6 py-4">Contacto</th>
+                            <th class="px-6 py-4">Factura Mensual</th>
+                            <th class="px-6 py-4">kW Est.</th>
+                            <th class="px-6 py-4">Ahorro Anual</th>
+                            <th class="px-6 py-4">Fecha</th>
                         </tr>
                     </thead>
-                    <tbody id="tablaLeads" class="divide-y divide-slate-800">
-                        <!-- Carga dinámica -->
+                    <tbody id="tabla-leads" class="divide-y divide-slate-800">
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-slate-500">Cargando registros...</td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -48,43 +51,57 @@
 
     <script>
         async function cargarLeads() {
+            const tbody = document.getElementById('tabla-leads');
             try {
-                const response = await fetch('/api/v1/leads');
-                const leads = await response.json();
-                const tbody = document.getElementById('tablaLeads');
-                tbody.innerHTML = '';
+                const response = await fetch('/api/leads');
+                const data = await response.json();
 
-                if (leads.length === 0) {
-                    tbody.innerHTML = `<tr><td colspan="6" class="p-6 text-center text-slate-500">No hay leads registrados todavía.</td></tr>`;
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-slate-500">
+                                No hay leads registrados aún. Realiza una prueba en la calculadora.
+                            </td>
+                        </tr>`;
                     return;
                 }
 
-                leads.forEach(lead => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-800/50 transition-colors";
-                    tr.innerHTML = `
-                        <td class="p-4 font-mono text-slate-400">#${lead.id}</td>
-                        <td class="p-4 font-semibold text-white">${lead.empresa}</td>
-                        <td class="p-4 text-slate-400">${lead.contacto_email}</td>
-                        <td class="p-4 text-emerald-400 font-mono">$${lead.pago_mensual_cop.toLocaleString('es-CO')} COP</td>
-                        <td class="p-4">
-                            <span class="bg-emerald-500/10 text-emerald-400 text-xs px-2.5 py-1 rounded-full border border-emerald-500/20">
-                                ${lead.es_apto_capex}
-                            </span>
+                tbody.innerHTML = data.map(lead => `
+                    <tr class="hover:bg-slate-800/30 transition-colors">
+                        <td class="px-6 py-4 font-mono text-xs text-slate-500">#${lead.id}</td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-white">${lead.nombre}</div>
+                            <div class="text-xs text-slate-400">${lead.empresa}</div>
                         </td>
-                        <td class="p-4">
-                            <a href="/api/v1/leads/${lead.id}/pdf" target="_blank" class="bg-blue-600 hover:bg-blue-700 text-white font-bold px-3 py-1.5 rounded-lg text-xs transition-all inline-block">
-                                Ver Propuesta PDF
-                            </a>
+                        <td class="px-6 py-4">
+                            <div>${lead.email}</div>
+                            <div class="text-xs text-slate-400">${lead.telefono}</div>
                         </td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error('Error al cargar leads:', err);
+                        <td class="px-6 py-4 text-amber-400 font-medium">
+                            $${Number(lead.factura_mensual).toLocaleString('es-CO')} COP
+                        </td>
+                        <td class="px-6 py-4">${lead.kw_estimados || 0} kWp</td>
+                        <td class="px-6 py-4 text-emerald-400 font-bold">
+                            $${Number(lead.ahorro_anual || 0).toLocaleString('es-CO')} COP
+                        </td>
+                        <td class="px-6 py-4 text-xs text-slate-500">
+                            ${new Date(lead.fecha).toLocaleDateString('es-CO')}
+                        </td>
+                    </tr>
+                `).join('');
+
+            } catch (error) {
+                console.error('Error al cargar leads:', error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" class="px-6 py-8 text-center text-red-400">
+                            Error de conexión al obtener los datos.
+                        </td>
+                    </tr>`;
             }
         }
-        cargarLeads();
+
+        window.onload = cargarLeads;
     </script>
 </body>
 </html>
