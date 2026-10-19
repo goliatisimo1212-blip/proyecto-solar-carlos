@@ -11,10 +11,13 @@
         <!-- Encabezado -->
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900 p-6 rounded-2xl border border-slate-800 shadow-xl gap-4">
             <div>
-                <span class="bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/20">Panel v5.7.0</span>
+                <span class="bg-amber-500/10 text-amber-400 text-xs font-semibold px-3 py-1 rounded-full border border-amber-500/20">Panel v6.4.0 (Alertas Activas)</span>
                 <h1 class="text-2xl font-bold text-white mt-1">Empresas Captadas (Ley 1715)</h1>
             </div>
             <div class="flex items-center gap-3">
+                <button id="btn-permisos" onclick="solicitarPermisoNotificaciones()" class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-xs font-bold transition-colors">
+                    🔔 Activar Alertas Sonoras
+                </button>
                 <button onclick="cargarLeads()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 px-4 py-2 rounded-xl text-sm font-bold transition-colors shadow-lg shadow-amber-500/10">
                     🔄 Actualizar Tabla
                 </button>
@@ -52,14 +55,53 @@
 
     <script>
         let leadsCache = [];
+        let ultimoMaxId = 0;
+        let primeraCarga = true;
+
+        // Función para sintetizar tono de alarma de audio
+        function reproducirSonidoAlarma() {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, audioCtx.currentTime); // Tono A5
+                osc.frequency.exponentialRampToValueAtTime(440, audioCtx.currentTime + 0.5);
+
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.5);
+            } catch (e) {
+                console.error("Error reproduciendo audio:", e);
+            }
+        }
+
+        // Solicitar permisos de notificación de escritorio
+        function solicitarPermisoNotificaciones() {
+            if ("Notification" in window) {
+                Notification.requestPermission().then(permission => {
+                    if (permission === "granted") {
+                        document.getElementById('btn-permisos').innerText = "✅ Alertas Activas";
+                        document.getElementById('btn-permisos').classList.replace("bg-blue-600", "bg-emerald-600");
+                        reproducirSonidoAlarma();
+                    }
+                });
+            }
+        }
 
         async function cargarLeads() {
             const tbody = document.getElementById('tabla-leads');
             try {
                 const response = await fetch('/api/leads');
-                leadsCache = await response.json();
+                const data = await response.json();
 
-                if (!leadsCache || leadsCache.length === 0) {
+                if (!data || data.length === 0) {
                     tbody.innerHTML = `
                         <tr>
                             <td colspan="8" class="px-6 py-8 text-center text-slate-500">
@@ -69,7 +111,23 @@
                     return;
                 }
 
-                tbody.innerHTML = leadsCache.map(lead => `
+                // Detectar si hay un nuevo lead para sonar alarma
+                const maxIdActual = Math.max(...data.map(l => l.id));
+                if (!primeraCarga && maxIdActual > ultimoMaxId) {
+                    const nuevoLead = data.find(l => l.id === maxIdActual);
+                    reproducirSonidoAlarma();
+                    if ("Notification" in window && Notification.permission === "granted") {
+                        new Notification("🚨 ¡NUEVO LEAD SOLAR CAPTADO!", {
+                            body: `Cliente: ${nuevoLead.nombre}\nEmpresa: ${nuevoLead.empresa}\nFactura: $${Number(nuevoLead.factura_mensual).toLocaleString('es-CO')} COP`
+                        });
+                    }
+                }
+
+                ultimoMaxId = maxIdActual;
+                primeraCarga = false;
+                leadsCache = data;
+
+                tbody.innerHTML = data.map(lead => `
                     <tr class="hover:bg-slate-800/30 transition-colors">
                         <td class="px-6 py-4 font-mono text-xs text-slate-500">#${lead.id}</td>
                         <td class="px-6 py-4">
@@ -100,12 +158,6 @@
 
             } catch (error) {
                 console.error('Error al cargar leads:', error);
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="8" class="px-6 py-8 text-center text-red-400">
-                            Error de conexión al obtener los datos.
-                        </td>
-                    </tr>`;
             }
         }
 
@@ -186,7 +238,11 @@
             ventana.document.close();
         }
 
-        window.onload = cargarLeads;
+        // Carga inicial y sondeo automatico cada 5 segundos
+        window.onload = () => {
+            cargarLeads();
+            setInterval(cargarLeads, 5000);
+        };
     </script>
 </body>
 </html>
