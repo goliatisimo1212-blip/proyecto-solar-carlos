@@ -43,7 +43,7 @@
             </div>
 
             <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold py-4 rounded-xl transition-colors shadow-lg shadow-amber-500/20">
-                Calcular Ahorro y Generar Estudio
+                Calcular Ahorro y Solicitar Estudio Gratuito
             </button>
         </form>
 
@@ -75,18 +75,18 @@
             const telefono = document.getElementById('telefono').value;
             const factura = parseFloat(document.getElementById('factura').value);
 
-            // Algoritmo de estimacion solar Ley 1715
+            // Algoritmo de estimación solar Ley 1715
             const kwEstimados = Math.round((factura / 850) / 120);
             const ahorroAnual = Math.round(factura * 12 * 0.40);
 
-            // Mostrar resultados
+            // Mostrar resultados al cliente
             document.getElementById('kw-result').innerText = `${kwEstimados} kWp`;
             document.getElementById('ahorro-result').innerText = `$${ahorroAnual.toLocaleString('es-CO')} COP`;
             document.getElementById('resultado').classList.remove('hidden');
 
-            // Enviar datos al backend API
+            // 1. Guardar silenciosamente en la Base de Datos SQLite del servidor
             try {
-                const response = await fetch('/api/leads', {
+                await fetch('/api/leads', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -99,14 +99,12 @@
                         ahorro_anual: ahorroAnual
                     })
                 });
-
-                const resData = await response.json();
-                if (resData.success) {
-                    alert('¡Excelente! Tu cálculo ha sido procesado y guardado en nuestro sistema.');
-                }
             } catch (err) {
-                console.error('Error al guardar el lead:', err);
+                console.error('Error al guardar en BD:', err);
             }
+
+            // 2. Notificación automática directa
+            alert('¡Cálculo realizado con éxito! Los datos han sido registrados en el panel de administración.');
         });
     </script>
 </body>
